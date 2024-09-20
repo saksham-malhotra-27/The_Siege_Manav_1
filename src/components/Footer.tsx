@@ -1,7 +1,6 @@
-// src/components/NavBar.jsx
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/authContext";
-export const NavBar = () => {
+export const Footer = () => {
   const { isLoggedIn } = useAuth();
 
   return (
