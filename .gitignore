@@ -1,4 +1,8 @@
 node_modules
 dist
 dist-electron
+public
+release
 .env
+server/__pycache__
+server/proj
