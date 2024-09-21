@@ -18,36 +18,83 @@ function Home() {
   const [showData, setShowData] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
-
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [useCamera, setUseCamera] = useState(false); // To handle camera state
+  
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFile(event.target.files?.[0]!);
   };
 
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+      setUseCamera(true);
+    } catch (error) {
+      console.error("Error accessing camera:", error);
+    }
+  };
+
+  const captureImage = () => {
+    if (videoRef.current && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
+      const video = videoRef.current;
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const newFile = new File([blob], "captured-image.png", {
+              type: "image/png",
+            });
+            setFile(newFile); // Store captured image as file
+            setUseCamera(false); // Hide the camera feed
+          }
+        });
+      }
+    }
+  };
+
+
   const handleSubmit = async () => {
     if (!file) return;
-
+  
     setIsSending(true);
     const formData = new FormData();
     formData.append("file", file);
-
-    // Simulate API response for now
-    setTimeout(() => {
-      const apiResponse = {
-        label: "Sample Label from API",
-        coordinates: {
-          x0: 50,
-          y0: 50,
-          x1: 200,
-          y1: 300,
-        },
-      };
-
-      setLabel(apiResponse.label);
-      setRect(apiResponse.coordinates);
+  
+    try {
+      const response = await fetch("http://127.0.0.1:8000/image-ai", { 
+        method: "POST",
+        body: formData,
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to upload file");
+      }
+  
+      const apiResponse = await response.json();
+      
+      const { Object: label, xmin, xmax, ymin, ymax } = apiResponse;
+      
+      setLabel(label);
+      setRect({ x0: xmin, y0: ymin, x1: xmax, y1: ymax });
       setSent(true);
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
       setIsSending(false);
-    }, 1000);
+    }
   };
+  
 
   useEffect(() => {
     if (file && canvasRef.current && imgRef.current && rect) {
@@ -294,19 +341,17 @@ function Home() {
             ></canvas>
           </div>
         )}
-        <div className="bg-slate-900 h-[50vh] w-full rounded-md mb-2 flex"></div>
-        <div className="flex gap-2 items-center mb-4">
-          <button className="basis-1/2 w-full bg-blue-400 h-fit p-2 rounded-md">
-            Capture
-          </button>
-          <input
-            type="file"
-            onChange={handleFileChange}
-            className="basis-1/2 text-black"
-          />
-        </div>
 
-        {!sent && (
+          {useCamera && (
+          <div>
+            <video ref={videoRef} autoPlay className="w-full h-auto"></video>
+            <button onClick={captureImage}>Capture Image</button>
+          </div>
+          )}
+          
+      <button onClick={startCamera}>Start Camera</button>
+
+        { (
           <button
             disabled={!file || isSending}
             onClick={handleSubmit}

@@ -24,6 +24,10 @@ import requests
 import tempfile
 from dotenv import load_dotenv
 
+from fastapi.middleware.cors import CORSMiddleware
+
+
+
 # Load environment variables from a .env file
 load_dotenv()
 # Configuration for Cloudinary
@@ -48,6 +52,15 @@ ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
 app = FastAPI()
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Update with your frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods or specify like ["GET", "POST"]
+    allow_headers=["*"],
+)
 
 class UserRegister(BaseModel):
     email: EmailStr
