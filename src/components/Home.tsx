@@ -341,15 +341,26 @@ function Home() {
             ></canvas>
           </div>
         )}
-
-          {useCamera && (
-          <div>
-            <video ref={videoRef} autoPlay className="w-full h-auto"></video>
-            <button onClick={captureImage}>Capture Image</button>
-          </div>
-          )}
-          
-      <button onClick={startCamera}>Start Camera</button>
+        <div className="flex flex-col gap-2 items-center mb-4">
+        
+         
+          <video ref={videoRef} autoPlay className="w-full h-52"></video>
+          {useCamera ? (
+           <div>
+             <button className=" bg-blue-400 p-2 rounded-full" onClick={captureImage}>Capture Image</button>
+           </div>
+           ): 
+           <button onClick={startCamera} className="basis-1/2 w-full bg-blue-400 h-fit p-2 rounded-md">
+            Capture
+          </button>
+           }
+          <input
+            type="file"
+            onChange={handleFileChange}
+            className="basis-1/2 text-black"
+          />
+        </div>
+        
 
         { (
           <button
