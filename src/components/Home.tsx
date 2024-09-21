@@ -399,7 +399,7 @@ const handleCoordChange = (field: keyof Rect, value: number) => {
 
   return (
     <div className="w-full pt-[10vh] min-h-[92vh] bg-slate-100 flex flex-col md:flex-row gap-2 p-2">
-      <div className={`inset-0 absolute z-30 w-full h-full flex justify-center items-center bg-black bg-opacity-50 ${isSending ? 'block' : 'hidden'}`} style={{ pointerEvents: isSending ? 'auto' : 'none' }}>
+      <div className={`inset-0 absolute z-30 w-full h-full flex justify-center items-center ${isSending ? 'block' : 'hidden'}`} style={{ pointerEvents: isSending ? 'auto' : 'none' }}>
         {isSending && <Loader />}
       </div>
 
