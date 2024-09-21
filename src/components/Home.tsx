@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import html2canvas from "html2canvas";
+import JsonFormatter from 'react-json-formatter'
+import xmlFormat from 'xml-formatter';
 
 interface Rect {
   x0: number;
@@ -7,7 +9,7 @@ interface Rect {
   x1: number;
   y1: number;
 }
-
+// ui ka part, csv wala , stop the camera 
 function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [isSending, setIsSending] = useState(false);
@@ -15,12 +17,13 @@ function Home() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [sent, setSent] = useState(false);
   const [label, setLabel] = useState("");
+  const [setJson, setIsJson] = useState(false)
+  const [setXML, setIsXML] = useState(false)
   const [showData, setShowData] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [useCamera, setUseCamera] = useState(false); // To handle camera state
-  
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFile(event.target.files?.[0]!);
   };
@@ -223,18 +226,21 @@ function Home() {
     alert("JSON exported successfully!");
   };
 
+
+
   const showJson = () => {
     if (!rect || !label) {
       console.log("No");
       return;
     }
+    setIsJson(true); setIsXML(false)
 
     const data = {
       label: label,
       coordinates: rect,
     };
-
-    const finalData = JSON.stringify(data);
+    setIsJson(true);
+    const finalData = JSON.stringify(data, null , 2);
     setShowData(finalData);
   };
 
@@ -243,6 +249,7 @@ function Home() {
       console.log("No");
       return;
     }
+    setIsJson(false); setIsXML(false);
 
     const data = {
       label: label,
@@ -283,6 +290,8 @@ function Home() {
       console.log("No");
       return;
     }
+    setIsJson(false);
+    setIsXML(true);
 
     const data = {
       label: label,
@@ -345,20 +354,24 @@ function Home() {
         
          
           <video ref={videoRef} autoPlay className="w-full h-52"></video>
+          <div className="flex items-center w-full ">
+          <div className="">
           {useCamera ? (
            <div>
-             <button className=" bg-blue-400 p-2 rounded-full" onClick={captureImage}>Capture Image</button>
+             <button className="w-fit bg-blue-400 p-2 rounded-full" onClick={captureImage}>Capture Image</button>
            </div>
            ): 
-           <button onClick={startCamera} className="basis-1/2 w-full bg-blue-400 h-fit p-2 rounded-md">
+           <button onClick={startCamera} className="basis-1/2 w-fit bg-blue-400 h-fit p-2 rounded-md">
             Capture
           </button>
            }
+          </div>
           <input
             type="file"
             onChange={handleFileChange}
             className="basis-1/2 text-black"
           />
+          </div>
         </div>
         
 
@@ -366,7 +379,7 @@ function Home() {
           <button
             disabled={!file || isSending}
             onClick={handleSubmit}
-            className="bg-blue-500 text-white px-4 py-2 rounded-full disabled:opacity-50"
+            className="bg-blue-500 text-white w-fit px-4 py-2 rounded-full disabled:opacity-50"
           >
             {isSending ? "Sending..." : "Send"}
           </button>
@@ -434,15 +447,18 @@ function Home() {
                   >
                     Show XML
                   </button>
-                  <button
-                    onClick={exportAsJson}
-                    className="bg-slate-800 text-white px-4 py-2 rounded-full hover:bg-slate-900  "
-                  >
-                    Show SQL
-                  </button>
                 </div>
                 <div className="w-full rounded-md h-[30vh] bg-slate-300 mt-2 overflow-y-scroll">
-                  {showData}
+                  
+                { 
+                setJson? 
+                 <JsonFormatter json={showData} tabWith={4} /> : (
+                  setXML?
+                  <>
+                  {xmlFormat(showData)}
+                  </>: 
+                  <> {showData} </>)
+                }
                 </div>
               </div>
 
@@ -451,12 +467,6 @@ function Home() {
                   Export Options:
                 </label>
                 <div className="flex gap-2">
-                  <button
-                    onClick={exportAsImage}
-                    className="bg-slate-900 text-white px-4 py-2 rounded-full hover:opacity-85"
-                  >
-                    Export Image
-                  </button>
                   <button
                     onClick={exportAsJson}
                     className="bg-slate-800 text-white px-4 py-2 rounded-full hover:bg-slate-900"
@@ -470,6 +480,15 @@ function Home() {
                     Export CSV
                   </button>
                 </div>
+              </div>
+            </>
+          )}
+
+          {/* Not sent */}
+          {!sent && (
+            <>
+              <div className="flex flex-col h-full w-full justify-center items-center">
+                <p className="font-semibold">Choose an Image</p>
               </div>
             </>
           )}
