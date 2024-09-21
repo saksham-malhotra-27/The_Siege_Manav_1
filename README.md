@@ -1,4 +1,7 @@
 # AI-Powered Object Detection Desktop Application
+![image](https://github.com/user-attachments/assets/8f4a2052-477c-49a3-8567-97b77c87f0ff)
+![image](https://github.com/user-attachments/assets/a1c16da5-41a7-4225-b2b3-92ca9fc67833)
+
 
 ## Overview
 
