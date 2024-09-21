@@ -80,16 +80,16 @@ function Home() {
         body: formData,
       });
   
-      if (!response.ok) {
+      if (!response.ok ) {
         throw new Error("Failed to upload file");
       }
+
   
-      const apiResponse = await response.json();
+      let output = await response.json(); // Fetching the response as JSON
+
       
-      const { Object: label, xmin, xmax, ymin, ymax } = apiResponse;
-      
-      setLabel(label);
-      setRect({ x0: xmin, y0: ymin, x1: xmax, y1: ymax });
+      setLabel(output.Object);
+      setRect({ x0: output.xmin, y0: output.ymin, x1: output.xmax, y1: output.ymax });
       setSent(true);
     } catch (error) {
       console.error("Error:", error);
@@ -97,6 +97,9 @@ function Home() {
       setIsSending(false);
     }
   };
+
+
+ 
   
 
   useEffect(() => {
@@ -132,35 +135,97 @@ function Home() {
     };
   };
 
-  const handleCanvasMouseDown = (
-    event: React.MouseEvent<HTMLCanvasElement>
-  ) => {
-    if (!sent) return;
-    const { x, y } = getRelativeCoords(event);
+  const edgeSize = 10; // Sensitivity for detecting edges
+
+// Helper function to check if the mouse is near an edge or corner
+const detectEdge = (x: number, y: number, rect: Rect) => {
+  const { x0, y0, x1, y1 } = rect;
+  const edges = {
+    left: Math.abs(x - x0) < edgeSize,
+    right: Math.abs(x - x1) < edgeSize,
+    top: Math.abs(y - y0) < edgeSize,
+    bottom: Math.abs(y - y1) < edgeSize,
+  };
+  return edges;
+};
+
+// Example state
+const [resizeMode, setResizeMode] = useState<null | keyof Rect>(null);
+
+// Handle mouse down - detect if resizing is triggered
+const handleCanvasMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
+  if (!sent || !rect) return;
+  const { x, y } = getRelativeCoords(event);
+
+  // Detect if we are clicking near an edge
+  const edges = detectEdge(x, y, rect);
+  if (edges.left) {
+    setResizeMode("x0");
+  } else if (edges.right) {
+    setResizeMode("x1");
+  } else if (edges.top) {
+    setResizeMode("y0");
+  } else if (edges.bottom) {
+    setResizeMode("y1");
+  } else {
+    // If not on an edge, start drawing a new rectangle
     setIsDrawing(true);
     setRect({ x0: x, y0: y, x1: x, y1: y });
-  };
+  }
+};
 
-  const handleCanvasMouseMove = (
-    event: React.MouseEvent<HTMLCanvasElement>
-  ) => {
-    if (!isDrawing || !rect) return;
-    const { x, y } = getRelativeCoords(event);
-    setRect((prevRect) => (prevRect ? { ...prevRect, x1: x, y1: y } : null));
-  };
+// Helper function to swap y0 and y1 if needed to keep y0 as the top coordinate
+const ensureVerticalBounds = (rect: Rect) => {
+  const { y0, y1 } = rect;
+  if (y1 < y0) {
+    return { ...rect, y0: y1, y1: y0 }; // Swap y0 and y1
+  }
+  return rect;
+};
 
-  const handleCanvasMouseUp = () => {
-    setIsDrawing(false);
-  };
+// Handle mouse move - resize or draw depending on the mode
+const handleCanvasMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+  if (!rect) return;
+  const { x, y } = getRelativeCoords(event);
 
-  const handleCoordChange = (field: keyof Rect, value: number) => {
-    if (rect && value >= 0) {
-      setRect((prevRect) => ({
-        ...prevRect!,
-        [field]: Math.min(Math.max(value, 0), rect.y1), // Ensure within bounds
-      }));
-    }
-  };
+  // If we're resizing, adjust the respective edge
+  if (resizeMode) {
+    setRect((prevRect) => {
+      if (!prevRect) return null;
+
+      const newRect = { ...prevRect, [resizeMode]: resizeMode.startsWith("y") ? y : x };
+      
+      // Ensure y0 is always the top and y1 is always the bottom
+      return ensureVerticalBounds(newRect);
+    });
+  } else if (isDrawing) {
+    // While drawing, we adjust both x1 and y1 to match the new mouse position
+    setRect((prevRect) => {
+      if (!prevRect) return null;
+
+      const newRect = { ...prevRect, x1: x, y1: y };
+
+      // Ensure y0 is always the top and y1 is always the bottom
+      return ensureVerticalBounds(newRect);
+    });
+  }
+};
+
+// Handle mouse up - stop drawing or resizing
+const handleCanvasMouseUp = () => {
+  setIsDrawing(false);
+  setResizeMode(null); // Stop resizing
+};
+
+// Handle coordinate change from some external input (e.g., input fields)
+const handleCoordChange = (field: keyof Rect, value: number) => {
+  if (rect && value >= 0) {
+    setRect((prevRect) => ({
+      ...prevRect!,
+      [field]: Math.min(Math.max(value, 0), rect.y1), // Ensure within bounds
+    }));
+  }
+};
 
   const exportAsImage = () => {
     if (!rect || !label || !imgRef.current) return;
@@ -354,14 +419,14 @@ function Home() {
         
          
           <video ref={videoRef} autoPlay className="w-full h-52"></video>
-          <div className="flex items-center w-full ">
-          <div className="">
+          <div className="flex items-center w-full">
+          <div className="w-full flex gap-2 basis-1/2">
           {useCamera ? (
-           <div>
-             <button className="w-fit bg-blue-400 p-2 rounded-full" onClick={captureImage}>Capture Image</button>
+           <div className="w-full gap-2 px-2">
+             <button className="basis-1/2 w-full bg-blue-400 h-fit p-2 rounded-md" onClick={captureImage}>Capture Image</button>
            </div>
            ): 
-           <button onClick={startCamera} className="basis-1/2 w-fit bg-blue-400 h-fit p-2 rounded-md">
+           <button onClick={startCamera} className="basis-1/2 w-full bg-blue-400 h-fit p-2 rounded-md">
             Capture
           </button>
            }
@@ -379,7 +444,7 @@ function Home() {
           <button
             disabled={!file || isSending}
             onClick={handleSubmit}
-            className="bg-blue-500 text-white w-fit px-4 py-2 rounded-full disabled:opacity-50"
+            className="bg-blue-500 text-white w-full px-4 py-3 rounded-md disabled:opacity-50"
           >
             {isSending ? "Sending..." : "Send"}
           </button>

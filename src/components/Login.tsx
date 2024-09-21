@@ -158,7 +158,7 @@ const Auth: React.FC = () => {
                         <button
                             className="w-full max-w-xs font-bold shadow-sm rounded-lg py-3 bg-green-100 text-gray-800 flex items-center justify-center transition-all duration-300 ease-in-out focus:outline-none hover:shadow focus:shadow-sm focus:shadow-outline">
                             
-                            <span className="ml-4 text-xl">
+                            <span className="ml-4 text-3xl">
                                 Label It
                             </span>
                         </button>
@@ -216,8 +216,9 @@ const Auth: React.FC = () => {
             </div>
         </div>
         <div className="flex-1 bg-green-100 text-center hidden lg:flex">
-            <div className="m-12 xl:m-16 w-full bg-contain bg-center bg-no-repeat"
-                >
+            <div className="m-12 xl:m-16 w-full bg-contain bg-center h-full bg-no-repeat"
+              >
+                <img src='/magr.png' className=' object-cover h-[70vh] w-full'/>
                  
             </div>
         </div>
