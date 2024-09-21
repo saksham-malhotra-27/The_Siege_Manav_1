@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import html2canvas from "html2canvas";
 import JsonFormatter from 'react-json-formatter'
 import xmlFormat from 'xml-formatter';
+import Loader from "./Loader";
 
 interface Rect {
   x0: number;
@@ -291,6 +292,8 @@ const handleCoordChange = (field: keyof Rect, value: number) => {
     alert("JSON exported successfully!");
   };
 
+  
+
 
 
   const showJson = () => {
@@ -396,9 +399,14 @@ const handleCoordChange = (field: keyof Rect, value: number) => {
 
   return (
     <div className="w-full pt-[10vh] min-h-[92vh] bg-slate-100 flex flex-col md:flex-row gap-2 p-2">
+      <div className={`inset-0 absolute z-30 w-full h-full flex justify-center items-center bg-black bg-opacity-50 ${isSending ? 'block' : 'hidden'}`} style={{ pointerEvents: isSending ? 'auto' : 'none' }}>
+        {isSending && <Loader />}
+      </div>
+
       <div className="flex flex-col bg-slate-200 md:basis:1/2 p-4 rounded-md md:basis-1/2">
         {file && (
           <div className="relative bg-gray-200 rounded-lg overflow-hidden mb-4">
+            
             <img
               ref={imgRef}
               className="w-full h-auto object-contain"

@@ -18,7 +18,7 @@ export const NavBar = () => {
       </div>
       <div className="basis-1/3 flex justify-center text-lg hover:opacity-80">
         <Link to="/" className="">
-          Home
+          
         </Link>
       </div>
       <div className="flex basis-1/3 justify-end">

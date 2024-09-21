@@ -218,8 +218,8 @@ const Auth: React.FC = () => {
         <div className="flex-1 bg-green-100 text-center hidden lg:flex">
             <div className="m-12 xl:m-16 w-full bg-contain bg-center h-full bg-no-repeat"
               >
-                <img src='/magr.png' className=' object-cover h-[70vh] w-full'/>
-                 
+                <img src='/art.png' className=' object-cover h-[50vh] w-full'/>
+                <img src='/magr.png' className=' -mt-16 object-cover h-[30vh] w-full'/>
             </div>
         </div>
     </div>
